@@ -44,6 +44,7 @@ public class StarfishCollectorBeta extends Game {
 
     private boolean win;
 
+    // создать объекты
     public void create() {
         mainStage = new Stage();
 
@@ -70,21 +71,22 @@ public class StarfishCollectorBeta extends Game {
         win = false;
     }
 
+    // изменить, обновить, нарисовать обекты
     public void render() {
-// проверить ввод данных пользователем
+        // проверить ввод данных пользователем
         mainStage.act(1 / 60f);
 
-// проверить условие выигрыша: черепаха должна перекрывать морскую звезду
+        // проверить условие выигрыша: черепаха должна перекрывать морскую звезду
         if (turtle.overlaps(starfish)) {
             starfish.remove();
             winMessage.setVisible(true);
         }
 
-// очистить экран
+        // очистить экран
         Gdx.gl.glClearColor(0, 0, 0, 1);
         Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
 
-// нарисовать графику
+        // нарисовать графику
         mainStage.draw();
     }
 }
