@@ -27,8 +27,10 @@ package ru.evant.lernlibgdx_3.v3;
     морской звезды исчезает с экрана. (Однако, несмотря на то, что он больше не виден, объект "морская звезда"
     остается в памяти компьютера.)
  */
+
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.Texture;
+import com.badlogic.gdx.scenes.scene2d.actions.Actions;
 
 public class StarfishCollectorBetaV3 extends GameBetaV3 {
 
@@ -39,18 +41,31 @@ public class StarfishCollectorBetaV3 extends GameBetaV3 {
     // создать объекты
     @Override
     public void initialize() {
-        ocean = new BaseActorV3(0,0,mainStage);
+        ocean = new BaseActorV3(0, 0, mainStage);
         ocean.loadTexture("water.jpg");
-        ocean.setSize(800,600);
+        ocean.setSize(800, 600);
 
-        starfish = new StarfishV3(380,380,mainStage);
+        starfish = new StarfishV3(380, 380, mainStage);
 
-        turtleV3 = new TurtleV3(20,20,mainStage);
+        turtleV3 = new TurtleV3(20, 20, mainStage);
     }
 
     // изменить, обновить, нарисовать обекты
     @Override
     public void update(float dt) {
+        if (turtleV3.overlaps(starfish) && !starfish.isCollected()) {
+            starfish.collect();
+            WhirlpoolV3 whirl = new WhirlpoolV3(0, 0, mainStage);
+            whirl.centerAtActor(starfish);
+            whirl.setOpacity(0.25f);
+
+            BaseActorV3 youWinMessage = new BaseActorV3(0, 0, mainStage);
+            youWinMessage.loadTexture("you-win.png");
+            youWinMessage.centerAtPosition(400, 300);
+            youWinMessage.setOpacity(0);
+            youWinMessage.addAction(Actions.delay(1));
+            youWinMessage.addAction(Actions.after(Actions.fadeIn(1)));
+        }
 
     }
 }

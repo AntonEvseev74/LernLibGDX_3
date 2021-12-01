@@ -1,6 +1,8 @@
 package ru.evant.lernlibgdx_3.v3;
 
+import com.badlogic.gdx.math.Intersector;
 import com.badlogic.gdx.math.MathUtils;
+import com.badlogic.gdx.math.Polygon;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.scenes.scene2d.Actor;
 import com.badlogic.gdx.scenes.scene2d.Stage;
@@ -27,6 +29,8 @@ public class BaseActorV3 extends Actor {
     private float maxSpeed;
     private float deceleration;
 
+    private Polygon boundaryPolygon; // Полигон, необхоим для обработки столкновений объектов
+
 
     public BaseActorV3(float x, float y, Stage s) {
         // вызов конструктора класса Actor
@@ -40,8 +44,8 @@ public class BaseActorV3 extends Actor {
         elapsedTime = 0;
         animationPaused = false;
 
-        velocityVec = new Vector2(0,0);
-        accelerationVec = new Vector2(0,0);
+        velocityVec = new Vector2(0, 0);
+        accelerationVec = new Vector2(0, 0);
         acceleration = 0;
         maxSpeed = 1000;
         deceleration = 0;
@@ -49,28 +53,91 @@ public class BaseActorV3 extends Actor {
     }
 
     public void act(float dt) {
-        super.act( dt );
+        super.act(dt);
         if (!animationPaused) elapsedTime += dt;
     }
 
     public void draw(Batch batch, float parentAlpha) {
-        super.draw( batch, parentAlpha );
+        super.draw(batch, parentAlpha);
 
         // применить эффект цветового оттенка
         Color c = getColor();
 
         batch.setColor(c.r, c.g, c.b, c.a);
-        if ( animation != null && isVisible() ) {
+        if (animation != null && isVisible()) {
             batch.draw((TextureRegion) animation.getKeyFrame(elapsedTime),
                     getX(), getY(), getOriginX(), getOriginY(),
-                    getWidth(), getHeight(), getScaleX(), getScaleY(), getRotation() );
+                    getWidth(), getHeight(), getScaleX(), getScaleY(), getRotation());
         }
     }
 
-    /** Движение */
+    // Прозрачность объекта
+    public void setOpacity(float opacity) {
+        this.getColor().a = opacity;
+    }
+
+
+    /** Обработка позиции объекта на экране */
+    public void centerAtPosition(float x, float y) {
+        setPosition( x - getWidth()/2 , y - getHeight()/2 );
+    }
+
+    public void centerAtActor(BaseActorV3 other) {
+        centerAtPosition( other.getX() + other.getWidth()/2 , other.getY() + other.getHeight()/2 );
+    }
+
+
+    /**
+     * Столкновения
+     */
+    public void setBoundaryRectangle() {
+        float w = getWidth();
+        float h = getHeight();
+        float[] vertices = {0, 0, w, 0, w, h, 0, h};
+        boundaryPolygon = new Polygon(vertices);
+    }
+
+    public void setBoundaryPolygon(int numSides) {
+        float w = getWidth();
+        float h = getHeight();
+        float[] vertices = new float[2 * numSides];
+
+        for (int i = 0; i < numSides; i++) {
+            float angle = i * 6.28f / numSides;
+            // x-координата
+            vertices[2 * i] = w / 2 * MathUtils.cos(angle) + w / 2;
+            // y-координата
+            vertices[2 * i + 1] = h / 2 * MathUtils.sin(angle) + h / 2;
+        }
+
+        boundaryPolygon = new Polygon(vertices);
+    }
+
+    public Polygon getBoundaryPolygon() {
+        boundaryPolygon.setPosition(getX(), getY());
+        boundaryPolygon.setOrigin(getOriginX(), getOriginY());
+        boundaryPolygon.setRotation(getRotation());
+        boundaryPolygon.setScale(getScaleX(), getScaleY());
+        return boundaryPolygon;
+    }
+
+    // Проверка на столкновение
+    public boolean overlaps(BaseActorV3 other) {
+        Polygon poly1 = this.getBoundaryPolygon();
+        Polygon poly2 = other.getBoundaryPolygon();
+
+        // начальный тест для повышения производительности
+        if (!poly1.getBoundingRectangle().overlaps(poly2.getBoundingRectangle())) return false;
+        return Intersector.overlapConvexPolygons(poly1, poly2);
+    }
+
+
+    /**
+     * Движение
+     */
     public void applyPhysics(float dt) {
         // применить ускорение
-        velocityVec.add( accelerationVec.x * dt, accelerationVec.y * dt );
+        velocityVec.add(accelerationVec.x * dt, accelerationVec.y * dt);
 
         float speed = getSpeed();
 
@@ -84,14 +151,16 @@ public class BaseActorV3 extends Actor {
         setSpeed(speed);
 
         // применить скорость
-        moveBy( velocityVec.x * dt, velocityVec.y * dt );
+        moveBy(velocityVec.x * dt, velocityVec.y * dt);
 
         // сбросить ускорение
-        accelerationVec.set(0,0);
+        accelerationVec.set(0, 0);
     }
 
 
-    /** Физика */
+    /**
+     * Физика
+     */
     public void setSpeed(float speed) {
         // если длина равна нулю, то предположим, что угол движения равен нулю градусов
         if (velocityVec.len() == 0) velocityVec.set(speed, 0);
@@ -119,11 +188,11 @@ public class BaseActorV3 extends Actor {
     }
 
     public void accelerateAtAngle(float angle) {
-        accelerationVec.add( new Vector2(acceleration, 0).setAngle(angle) );
+        accelerationVec.add(new Vector2(acceleration, 0).setAngle(angle));
     }
 
     public void accelerateForward() {
-        accelerateAtAngle( getRotation() );
+        accelerateAtAngle(getRotation());
     }
 
     public void setMaxSpeed(float ms) {
@@ -135,7 +204,9 @@ public class BaseActorV3 extends Actor {
     }
 
 
-    /** Анимация */
+    /**
+     * Анимация
+     */
     /* используется для настройки анимации.
        Как только анимация будет установлена, можно будет установить размер (ширину и высоту) актера,
        а также начало координат (точку, вокруг которой должен вращаться актер, обычно центр актера).
@@ -149,9 +220,11 @@ public class BaseActorV3 extends Actor {
         float h = tr.getRegionHeight();
         setSize(w, h);
         setOrigin(w / 2, h / 2);
+
+        if (boundaryPolygon == null) setBoundaryRectangle();
     }
 
-    public void setAnimationPaused(boolean pause){
+    public void setAnimationPaused(boolean pause) {
         animationPaused = pause;
     }
 
@@ -161,9 +234,9 @@ public class BaseActorV3 extends Actor {
 
         for (int n = 0; n < fileCount; n++) {
             String fileName = fileNames[n];
-            Texture texture = new Texture( Gdx.files.internal(fileName) );
-            texture.setFilter( TextureFilter.Linear, TextureFilter.Linear );
-            textureArray.add( new TextureRegion( texture ) );
+            Texture texture = new Texture(Gdx.files.internal(fileName));
+            texture.setFilter(TextureFilter.Linear, TextureFilter.Linear);
+            textureArray.add(new TextureRegion(texture));
         }
 
         Animation anim = new Animation(frameDuration, textureArray);
@@ -188,7 +261,7 @@ public class BaseActorV3 extends Actor {
 
         for (int r = 0; r < rows; r++)
             for (int c = 0; c < cols; c++)
-                textureArray.add( temp[r][c] );
+                textureArray.add(temp[r][c]);
 
         Animation anim = new Animation(frameDuration, textureArray);
 

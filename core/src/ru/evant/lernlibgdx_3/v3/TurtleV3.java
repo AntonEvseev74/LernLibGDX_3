@@ -24,6 +24,8 @@ public class TurtleV3 extends BaseActorV3 {
 
         loadAnimationFromFiles(fileNames,0.1f,true);
 
+        setBoundaryPolygon(8);
+
         /*
         Максимальная скорость черепахи составит 100 пикселей в секунду.
         Значение ускорения 400 означает, что скорость будет увеличиваться на 400 пикселей в секунду каждую секунду,
