@@ -34,9 +34,10 @@ import com.badlogic.gdx.scenes.scene2d.actions.Actions;
 
 public class StarfishCollectorBetaV3 extends GameBetaV3 {
 
-    private TurtleV3 turtleV3;
+    private TurtleV3 turtle;
     private StarfishV3 starfish;
     private BaseActorV3 ocean;
+    private RockV3 rock;
 
     // создать объекты
     @Override
@@ -47,13 +48,17 @@ public class StarfishCollectorBetaV3 extends GameBetaV3 {
 
         starfish = new StarfishV3(380, 380, mainStage);
 
-        turtleV3 = new TurtleV3(20, 20, mainStage);
+        turtle = new TurtleV3(20, 20, mainStage);
+
+        rock = new RockV3(200,200, mainStage);
     }
 
     // изменить, обновить, нарисовать обекты
     @Override
     public void update(float dt) {
-        if (turtleV3.overlaps(starfish) && !starfish.isCollected()) {
+        turtle.preventOverlap(rock);
+
+        if (turtle.overlaps(starfish) && !starfish.isCollected()) {
             starfish.collect();
             WhirlpoolV3 whirl = new WhirlpoolV3(0, 0, mainStage);
             whirl.centerAtActor(starfish);

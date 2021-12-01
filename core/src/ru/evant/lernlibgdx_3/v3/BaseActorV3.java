@@ -15,6 +15,7 @@ import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.graphics.g2d.Animation;
 import com.badlogic.gdx.graphics.g2d.Animation.PlayMode;
 import com.badlogic.gdx.graphics.g2d.Batch;
+import com.badlogic.gdx.math.Intersector.MinimumTranslationVector;
 
 
 public class BaseActorV3 extends Actor {
@@ -130,6 +131,24 @@ public class BaseActorV3 extends Actor {
         if (!poly1.getBoundingRectangle().overlaps(poly2.getBoundingRectangle())) return false;
         return Intersector.overlapConvexPolygons(poly1, poly2);
     }
+
+    // Предотвращение столкновения
+    public Vector2 preventOverlap(BaseActorV3 other) {
+        Polygon poly1 = this.getBoundaryPolygon();
+        Polygon poly2 = other.getBoundaryPolygon();
+
+        // начальный тест для повышения производительности
+        if ( !poly1.getBoundingRectangle().overlaps(poly2.getBoundingRectangle()) ) return null;
+
+        MinimumTranslationVector mtv = new MinimumTranslationVector();
+        boolean polygonOverlap = Intersector.overlapConvexPolygons(poly1, poly2, mtv);
+
+        if ( !polygonOverlap ) return null;
+
+        this.moveBy( mtv.normal.x * mtv.depth, mtv.normal.y * mtv.depth );
+        return mtv.normal;
+    }
+
 
 
     /**
