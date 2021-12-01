@@ -33,21 +33,18 @@ import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.scenes.scene2d.Stage;
 
-public class StarfishCollectorBeta extends Game {
+public class StarfishCollectorBeta extends GameBeta {
 
     private Turtle turtle;
     private ActorBeta starfish;
     private ActorBeta ocean;
     private ActorBeta winMessage;
 
-    private Stage mainStage;
-
     private boolean win;
 
     // создать объекты
-    public void create() {
-        mainStage = new Stage();
-
+    @Override
+    public void initialize() {
         ocean = new ActorBeta();
         ocean.setTexture(new Texture(Gdx.files.internal("water.jpg")));
         mainStage.addActor(ocean);
@@ -63,8 +60,8 @@ public class StarfishCollectorBeta extends Game {
         mainStage.addActor(turtle);
 
         winMessage = new ActorBeta();
-        winMessage.setTexture(new Texture(Gdx.files.internal("you-win.jpg")));
-        winMessage.setPosition(300, 0);
+        winMessage.setTexture(new Texture(Gdx.files.internal("you-win.png")));
+        winMessage.setPosition(100, 0);
         winMessage.setVisible(false);
         mainStage.addActor(winMessage);
 
@@ -72,22 +69,14 @@ public class StarfishCollectorBeta extends Game {
     }
 
     // изменить, обновить, нарисовать обекты
-    public void render() {
-        // проверить ввод данных пользователем
-        mainStage.act(1 / 60f);
+    @Override
+    public void update(float dt) {
 
         // проверить условие выигрыша: черепаха должна перекрывать морскую звезду
         if (turtle.overlaps(starfish)) {
             starfish.remove();
             winMessage.setVisible(true);
         }
-
-        // очистить экран
-        Gdx.gl.glClearColor(0, 0, 0, 1);
-        Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
-
-        // нарисовать графику
-        mainStage.draw();
     }
 }
 
