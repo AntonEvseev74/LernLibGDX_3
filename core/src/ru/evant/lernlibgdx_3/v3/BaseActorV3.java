@@ -1,5 +1,7 @@
 package ru.evant.lernlibgdx_3.v3;
 
+import com.badlogic.gdx.math.MathUtils;
+import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.scenes.scene2d.Actor;
 import com.badlogic.gdx.scenes.scene2d.Stage;
 import com.badlogic.gdx.Gdx;
@@ -19,6 +21,13 @@ public class BaseActorV3 extends Actor {
     private float elapsedTime; // время которое прошло, используется для отслеживания продолжительности воспроизведения анимации
     private boolean animationPaused; // пауза анимации
 
+    private Vector2 velocityVec; // Вектор Скорость объекта указывает, как положение объекта меняется с течением времени, включая как скорость, так и направление движения.
+    private Vector2 accelerationVec; // Вектор ускорения
+    private float acceleration; // ускорение
+    private float maxSpeed;
+    private float deceleration;
+
+
     public BaseActorV3(float x, float y, Stage s) {
         // вызов конструктора класса Actor
         super();
@@ -30,25 +39,13 @@ public class BaseActorV3 extends Actor {
         animation = null;
         elapsedTime = 0;
         animationPaused = false;
-    }
 
-    /* используется для настройки анимации.
-       Как только анимация будет установлена, можно будет установить размер (ширину и высоту) актера,
-       а также начало координат (точку, вокруг которой должен вращаться актер, обычно центр актера).
-       Ширина и высота актера будут установлены на ширину и высоту первого изображения анимации
-       (изображения анимации также называются ключевыми кадрами).
-     */
-    public void setAnimation(Animation anim) {
-        animation = anim;
-        TextureRegion tr = (TextureRegion) animation.getKeyFrame(0);
-        float w = tr.getRegionWidth();
-        float h = tr.getRegionHeight();
-        setSize(w, h);
-        setOrigin(w / 2, h / 2);
-    }
+        velocityVec = new Vector2(0,0);
+        accelerationVec = new Vector2(0,0);
+        acceleration = 0;
+        maxSpeed = 1000;
+        deceleration = 0;
 
-    public void setAnimationPaused(boolean pause){
-        animationPaused = pause;
     }
 
     public void act(float dt) {
@@ -70,6 +67,93 @@ public class BaseActorV3 extends Actor {
         }
     }
 
+    /** Движение */
+    public void applyPhysics(float dt) {
+        // применить ускорение
+        velocityVec.add( accelerationVec.x * dt, accelerationVec.y * dt );
+
+        float speed = getSpeed();
+
+        // уменьшайте скорость (замедляйтесь), если не ускоряетесь
+        if (accelerationVec.len() == 0) speed -= deceleration * dt;
+
+        // держите скорость в установленных пределах
+        speed = MathUtils.clamp(speed, 0, maxSpeed);
+
+        // отбновить скорость
+        setSpeed(speed);
+
+        // применить скорость
+        moveBy( velocityVec.x * dt, velocityVec.y * dt );
+
+        // сбросить ускорение
+        accelerationVec.set(0,0);
+    }
+
+
+    /** Физика */
+    public void setSpeed(float speed) {
+        // если длина равна нулю, то предположим, что угол движения равен нулю градусов
+        if (velocityVec.len() == 0) velocityVec.set(speed, 0);
+        else velocityVec.setLength(speed);
+    }
+
+    public float getSpeed() {
+        return velocityVec.len();
+    }
+
+    public void setMotionAngle(float angle) {
+        velocityVec.setAngle(angle);
+    }
+
+    public float getMotionAngle() {
+        return velocityVec.angle();
+    }
+
+    public boolean isMoving() {
+        return (getSpeed() > 0);
+    }
+
+    public void setAcceleration(float acc) {
+        acceleration = acc;
+    }
+
+    public void accelerateAtAngle(float angle) {
+        accelerationVec.add( new Vector2(acceleration, 0).setAngle(angle) );
+    }
+
+    public void accelerateForward() {
+        accelerateAtAngle( getRotation() );
+    }
+
+    public void setMaxSpeed(float ms) {
+        maxSpeed = ms;
+    }
+
+    public void setDeceleration(float dec) {
+        deceleration = dec;
+    }
+
+
+    /** Анимация */
+    /* используется для настройки анимации.
+       Как только анимация будет установлена, можно будет установить размер (ширину и высоту) актера,
+       а также начало координат (точку, вокруг которой должен вращаться актер, обычно центр актера).
+       Ширина и высота актера будут установлены на ширину и высоту первого изображения анимации
+       (изображения анимации также называются ключевыми кадрами).
+     */
+    public void setAnimation(Animation anim) {
+        animation = anim;
+        TextureRegion tr = (TextureRegion) animation.getKeyFrame(0);
+        float w = tr.getRegionWidth();
+        float h = tr.getRegionHeight();
+        setSize(w, h);
+        setOrigin(w / 2, h / 2);
+    }
+
+    public void setAnimationPaused(boolean pause){
+        animationPaused = pause;
+    }
 
     public Animation loadAnimationFromFiles(String[] fileNames, float frameDuration, boolean loop) {
         int fileCount = fileNames.length;
