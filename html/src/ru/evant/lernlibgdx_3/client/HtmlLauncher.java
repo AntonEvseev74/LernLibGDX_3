@@ -6,6 +6,7 @@ import com.badlogic.gdx.backends.gwt.GwtApplicationConfiguration;
 
 import ru.evant.lernlibgdx_3.v1.StarfishCollectorAlpha;
 import ru.evant.lernlibgdx_3.v2.StarfishCollectorBeta;
+import ru.evant.lernlibgdx_3.v3.StarfishCollectorBetaV3;
 
 public class HtmlLauncher extends GwtApplication {
 
@@ -20,6 +21,7 @@ public class HtmlLauncher extends GwtApplication {
         @Override
         public ApplicationListener createApplicationListener () {
                 //return new StarfishCollectorAlpha();  // запустить 1ю версию
-                return new StarfishCollectorBeta();     // запустить 2ю версию
+                //return new StarfishCollectorBeta();     // запустить 2ю версию
+                return new StarfishCollectorBetaV3();     // запустить 3ю версию
         }
 }
