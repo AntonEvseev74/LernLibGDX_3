@@ -1,31 +1,32 @@
 package ru.evant.lernlibgdx_3.v3;
 
-import com.badlogic.gdx.math.Intersector;
-import com.badlogic.gdx.math.MathUtils;
-import com.badlogic.gdx.math.Polygon;
-import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.scenes.scene2d.Actor;
 import com.badlogic.gdx.scenes.scene2d.Stage;
+
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.utils.Array;
-import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.Texture;
+import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.Texture.TextureFilter;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.graphics.g2d.Animation;
-import com.badlogic.gdx.graphics.g2d.Animation.PlayMode;
 import com.badlogic.gdx.graphics.g2d.Batch;
-import com.badlogic.gdx.math.Intersector.MinimumTranslationVector;
 
+import com.badlogic.gdx.math.Vector2;
+import com.badlogic.gdx.math.MathUtils;
+
+import com.badlogic.gdx.math.Polygon;
+import com.badlogic.gdx.math.Intersector;
+import com.badlogic.gdx.math.Intersector.MinimumTranslationVector;
 
 public class BaseActorV3 extends Actor {
 
-    private Animation animation; // анимация
+    private Animation<TextureRegion> animation; // анимация
     private float elapsedTime; // время которое прошло, используется для отслеживания продолжительности воспроизведения анимации
     private boolean animationPaused; // пауза анимации
 
-    private Vector2 velocityVec; // Вектор Скорость объекта указывает, как положение объекта меняется с течением времени, включая как скорость, так и направление движения.
-    private Vector2 accelerationVec; // Вектор ускорения
+    private final Vector2 velocityVec; // Вектор Скорость объекта указывает, как положение объекта меняется с течением времени, включая как скорость, так и направление движения.
+    private final Vector2 accelerationVec; // Вектор ускорения
     private float acceleration; // ускорение
     private float maxSpeed;
     private float deceleration;
@@ -66,7 +67,7 @@ public class BaseActorV3 extends Actor {
 
         batch.setColor(c.r, c.g, c.b, c.a);
         if (animation != null && isVisible()) {
-            batch.draw((TextureRegion) animation.getKeyFrame(elapsedTime),
+            batch.draw(animation.getKeyFrame(elapsedTime),
                     getX(), getY(), getOriginX(), getOriginY(),
                     getWidth(), getHeight(), getScaleX(), getScaleY(), getRotation());
         }
@@ -78,13 +79,15 @@ public class BaseActorV3 extends Actor {
     }
 
 
-    /** Обработка позиции объекта на экране */
+    /**
+     * Обработка позиции объекта на экране
+     */
     public void centerAtPosition(float x, float y) {
-        setPosition( x - getWidth()/2 , y - getHeight()/2 );
+        setPosition(x - getWidth() / 2, y - getHeight() / 2);
     }
 
     public void centerAtActor(BaseActorV3 other) {
-        centerAtPosition( other.getX() + other.getWidth()/2 , other.getY() + other.getHeight()/2 );
+        centerAtPosition(other.getX() + other.getWidth() / 2, other.getY() + other.getHeight() / 2);
     }
 
 
@@ -138,17 +141,16 @@ public class BaseActorV3 extends Actor {
         Polygon poly2 = other.getBoundaryPolygon();
 
         // начальный тест для повышения производительности
-        if ( !poly1.getBoundingRectangle().overlaps(poly2.getBoundingRectangle()) ) return null;
+        if (!poly1.getBoundingRectangle().overlaps(poly2.getBoundingRectangle())) return null;
 
         MinimumTranslationVector mtv = new MinimumTranslationVector();
         boolean polygonOverlap = Intersector.overlapConvexPolygons(poly1, poly2, mtv);
 
-        if ( !polygonOverlap ) return null;
+        if (!polygonOverlap) return null;
 
-        this.moveBy( mtv.normal.x * mtv.depth, mtv.normal.y * mtv.depth );
+        this.moveBy(mtv.normal.x * mtv.depth, mtv.normal.y * mtv.depth);
         return mtv.normal;
     }
-
 
 
     /**
@@ -232,9 +234,9 @@ public class BaseActorV3 extends Actor {
        Ширина и высота актера будут установлены на ширину и высоту первого изображения анимации
        (изображения анимации также называются ключевыми кадрами).
      */
-    public void setAnimation(Animation anim) {
+    public void setAnimation(Animation<TextureRegion> anim) {
         animation = anim;
-        TextureRegion tr = (TextureRegion) animation.getKeyFrame(0);
+        TextureRegion tr = animation.getKeyFrame(0);
         float w = tr.getRegionWidth();
         float h = tr.getRegionHeight();
         setSize(w, h);
@@ -247,18 +249,17 @@ public class BaseActorV3 extends Actor {
         animationPaused = pause;
     }
 
-    public Animation loadAnimationFromFiles(String[] fileNames, float frameDuration, boolean loop) {
+    public Animation<TextureRegion> loadAnimationFromFiles(String[] fileNames, float frameDuration, boolean loop) {
         int fileCount = fileNames.length;
-        Array textureArray = new Array();
+        Array<TextureRegion> textureArray = new Array<>();
 
-        for (int n = 0; n < fileCount; n++) {
-            String fileName = fileNames[n];
+        for (String fileName : fileNames) {
             Texture texture = new Texture(Gdx.files.internal(fileName));
             texture.setFilter(TextureFilter.Linear, TextureFilter.Linear);
             textureArray.add(new TextureRegion(texture));
         }
 
-        Animation anim = new Animation(frameDuration, textureArray);
+        Animation<TextureRegion> anim = new Animation<>(frameDuration, textureArray);
 
         if (loop) anim.setPlayMode(Animation.PlayMode.LOOP);
         else anim.setPlayMode(Animation.PlayMode.NORMAL);
@@ -268,7 +269,7 @@ public class BaseActorV3 extends Actor {
         return anim;
     }
 
-    public Animation loadAnimationFromSheet(String fileName, int rows, int cols, float frameDuration, boolean loop) {
+    public Animation<TextureRegion> loadAnimationFromSheet(String fileName, int rows, int cols, float frameDuration, boolean loop) {
         Texture texture = new Texture(Gdx.files.internal(fileName), true);
         texture.setFilter(TextureFilter.Linear, TextureFilter.Linear);
         int frameWidth = texture.getWidth() / cols;
@@ -276,13 +277,13 @@ public class BaseActorV3 extends Actor {
 
         TextureRegion[][] temp = TextureRegion.split(texture, frameWidth, frameHeight);
 
-        Array textureArray = new Array();
+        Array<TextureRegion> textureArray = new Array<>();
 
         for (int r = 0; r < rows; r++)
             for (int c = 0; c < cols; c++)
                 textureArray.add(temp[r][c]);
 
-        Animation anim = new Animation(frameDuration, textureArray);
+        Animation<TextureRegion> anim = new Animation<>(frameDuration, textureArray);
 
         if (loop) anim.setPlayMode(Animation.PlayMode.LOOP);
         else anim.setPlayMode(Animation.PlayMode.NORMAL);
@@ -292,7 +293,7 @@ public class BaseActorV3 extends Actor {
         return anim;
     }
 
-    public Animation loadTexture(String fileName) {
+    public Animation<TextureRegion> loadTexture(String fileName) {
         String[] fileNames = new String[1];
         fileNames[0] = fileName;
         return loadAnimationFromFiles(fileNames, 1, true);

@@ -28,45 +28,68 @@ package ru.evant.lernlibgdx_3.v3;
     остается в памяти компьютера.)
  */
 
-import com.badlogic.gdx.Gdx;
-import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.scenes.scene2d.actions.Actions;
+
+import java.util.ArrayList;
 
 public class StarfishCollectorBetaV3 extends GameBetaV3 {
 
     private TurtleV3 turtle;
-    private StarfishV3 starfish;
-    private BaseActorV3 ocean;
-    private RockV3 rock;
+    private boolean win;
 
-    // создать объекты
-    @Override
+    ArrayList<StarfishV3> starfishActors; // Список звезд
+    ArrayList<RockV3> rockActors; // Список камней
+
     public void initialize() {
-        ocean = new BaseActorV3(0, 0, mainStage);
+        BaseActorV3 ocean = new BaseActorV3(0, 0, mainStage);
         ocean.loadTexture("water.jpg");
         ocean.setSize(800, 600);
 
-        starfish = new StarfishV3(380, 380, mainStage);
+        // Заполняем список звезд
+        starfishActors = new ArrayList<>();
+        starfishActors.add(new StarfishV3(400, 400, mainStage));
+        starfishActors.add(new StarfishV3(500, 100, mainStage));
+        starfishActors.add(new StarfishV3(100, 450, mainStage));
+        starfishActors.add(new StarfishV3(200, 250, mainStage));
+
+        // Заполняем список камней
+        rockActors = new ArrayList<>();
+        rockActors.add(new RockV3(200, 150, mainStage));
+        rockActors.add(new RockV3(100, 300, mainStage));
+        rockActors.add(new RockV3(300, 350, mainStage));
+        rockActors.add(new RockV3(450, 200, mainStage));
 
         turtle = new TurtleV3(20, 20, mainStage);
 
-        rock = new RockV3(200,200, mainStage);
+        win = false;
     }
 
-    // изменить, обновить, нарисовать обекты
-    @Override
     public void update(float dt) {
-        turtle.preventOverlap(rock);
+        for (RockV3 r : rockActors) turtle.preventOverlap(r);
 
-        if (turtle.overlaps(starfish) && !starfish.isCollected()) {
-            starfish.collect();
-            WhirlpoolV3 whirl = new WhirlpoolV3(0, 0, mainStage);
-            whirl.centerAtActor(starfish);
-            whirl.setOpacity(0.25f);
+        for (int i=0; i < starfishActors.size();i++){
+            StarfishV3 starfish = starfishActors.get(i);
 
+            if (turtle.overlaps(starfish) && !starfish.collected) {
+
+                starfish.collected = true;
+                starfish.clearActions();
+                starfish.addAction(Actions.fadeOut(1));
+                starfish.addAction(Actions.after(Actions.removeActor()));
+
+                WhirlpoolV3 whirl = new WhirlpoolV3(0, 0, mainStage);
+                whirl.centerAtActor(starfish);
+                whirl.setOpacity(0.25f);
+
+                starfishActors.remove(starfish);
+            }
+        }
+
+        if (starfishActors.size() == 0 && !win) {
+            win = true;
             BaseActorV3 youWinMessage = new BaseActorV3(0, 0, mainStage);
             youWinMessage.loadTexture("you-win.png");
-            youWinMessage.centerAtPosition(400, 300);
+            youWinMessage.centerAtPosition(400, 200);
             youWinMessage.setOpacity(0);
             youWinMessage.addAction(Actions.delay(1));
             youWinMessage.addAction(Actions.after(Actions.fadeIn(1)));
