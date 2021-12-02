@@ -34,6 +34,9 @@ import java.util.ArrayList;
 
 public class StarfishCollectorBetaV3 extends GameBetaV3 {
 
+    private int width = 800;
+    private int height = 600;
+
     private TurtleV3 turtle;
     private boolean win;
 
@@ -43,21 +46,21 @@ public class StarfishCollectorBetaV3 extends GameBetaV3 {
     public void initialize() {
         BaseActorV3 ocean = new BaseActorV3(0, 0, mainStage);
         ocean.loadTexture("water.jpg");
-        ocean.setSize(800, 600);
+        ocean.setSize(width, height);
 
         // Заполняем список звезд
         starfishActors = new ArrayList<>();
+        starfishActors.add(new StarfishV3(200, 400, mainStage));
+        starfishActors.add(new StarfishV3(100, 200, mainStage));
+        starfishActors.add(new StarfishV3(300, 200, mainStage));
         starfishActors.add(new StarfishV3(400, 400, mainStage));
-        starfishActors.add(new StarfishV3(500, 100, mainStage));
-        starfishActors.add(new StarfishV3(100, 450, mainStage));
-        starfishActors.add(new StarfishV3(200, 250, mainStage));
 
         // Заполняем список камней
         rockActors = new ArrayList<>();
-        rockActors.add(new RockV3(200, 150, mainStage));
-        rockActors.add(new RockV3(100, 300, mainStage));
-        rockActors.add(new RockV3(300, 350, mainStage));
-        rockActors.add(new RockV3(450, 200, mainStage));
+        rockActors.add(new RockV3(200, 300, mainStage));
+        rockActors.add(new RockV3(100, 100, mainStage));
+        rockActors.add(new RockV3(300, 100, mainStage));
+        rockActors.add(new RockV3(400, 300, mainStage));
 
         turtle = new TurtleV3(20, 20, mainStage);
 
@@ -67,7 +70,7 @@ public class StarfishCollectorBetaV3 extends GameBetaV3 {
     public void update(float dt) {
         for (RockV3 r : rockActors) turtle.preventOverlap(r);
 
-        for (int i=0; i < starfishActors.size();i++){
+        for (int i = 0; i < starfishActors.size(); i++) {
             StarfishV3 starfish = starfishActors.get(i);
 
             if (turtle.overlaps(starfish) && !starfish.collected) {
@@ -86,13 +89,30 @@ public class StarfishCollectorBetaV3 extends GameBetaV3 {
         }
 
         if (starfishActors.size() == 0 && !win) {
+
+            // удаляем камни
+            for (int i = 0; i < rockActors.size(); i++) {
+                rockActors.get(i).clearActions();
+                rockActors.get(i).addAction(Actions.fadeOut(1));
+                rockActors.get(i).addAction(Actions.after(Actions.removeActor()));
+            }
+
+            // удаляем черепаху
+            turtle.clearActions();
+            turtle.addAction(Actions.fadeOut(1));
+            turtle.addAction(Actions.after(Actions.removeActor()));
+
             win = true;
+
+            // Выводим сообщение о победе
             BaseActorV3 youWinMessage = new BaseActorV3(0, 0, mainStage);
             youWinMessage.loadTexture("you-win.png");
-            youWinMessage.centerAtPosition(400, 200);
+            youWinMessage.centerAtPosition(width - youWinMessage.getWidth()-50, (height - youWinMessage.getHeight())/2);
             youWinMessage.setOpacity(0);
             youWinMessage.addAction(Actions.delay(1));
             youWinMessage.addAction(Actions.after(Actions.fadeIn(1)));
+
+
         }
 
     }
