@@ -5,6 +5,7 @@ import com.badlogic.gdx.scenes.scene2d.actions.Actions;
 import java.util.ArrayList;
 
 import ru.evant.lernlibgdx_3.v4.actor.RockV4;
+import ru.evant.lernlibgdx_3.v4.actor.SharkV4;
 import ru.evant.lernlibgdx_3.v4.actor.StarfishV4;
 import ru.evant.lernlibgdx_3.v4.actor.TurtleV4;
 import ru.evant.lernlibgdx_3.v4.actor.WhirlpoolV4;
@@ -13,14 +14,12 @@ import ru.evant.lernlibgdx_3.v4.base.BaseScreenV4;
 
 public class LevelScreen2V4 extends BaseScreenV4 {
 
-   // private int width = 1200;
-   // private int height = 900;
-
     private TurtleV4 turtle;
     private boolean win;
 
     ArrayList<StarfishV4> starfishActors; // Список звезд
     ArrayList<RockV4> rockActors; // Список камней
+    ArrayList<SharkV4> sharkActors; // Список акул
 
     @Override
     public void initialize() {
@@ -31,17 +30,24 @@ public class LevelScreen2V4 extends BaseScreenV4 {
 
         // Заполняем список звезд
         starfishActors = new ArrayList<>();
-        starfishActors.add(new StarfishV4(200+50, 400, mainStage));
-        starfishActors.add(new StarfishV4(100+100, 200, mainStage));
-        starfishActors.add(new StarfishV4(300+70, 200, mainStage));
-        starfishActors.add(new StarfishV4(400+10, 400, mainStage));
+        starfishActors.add(new StarfishV4(200, 400, mainStage));
+        starfishActors.add(new StarfishV4(100, 200, mainStage));
+        starfishActors.add(new StarfishV4(300, 200, mainStage));
+        starfishActors.add(new StarfishV4(400, 400, mainStage));
 
         // Заполняем список камней
         rockActors = new ArrayList<>();
-        rockActors.add(new RockV4(200, 300, mainStage));
+        rockActors.add(new RockV4(200 , 300, mainStage));
         rockActors.add(new RockV4(100, 100, mainStage));
         rockActors.add(new RockV4(300, 100, mainStage));
         rockActors.add(new RockV4(400, 300, mainStage));
+
+        // Заполняем список акул
+        sharkActors = new ArrayList<>();
+        sharkActors.add(new SharkV4(250, 350, mainStage));
+        sharkActors.add(new SharkV4(150, 150, mainStage));
+        sharkActors.add(new SharkV4(350, 150, mainStage));
+        sharkActors.add(new SharkV4(450, 350, mainStage));
 
         turtle = new TurtleV4(20, 20, mainStage);
 
@@ -50,7 +56,12 @@ public class LevelScreen2V4 extends BaseScreenV4 {
 
     @Override
     public void update(float dt) {
-        for (RockV4 r : rockActors) turtle.preventOverlap(r);
+
+        for (RockV4 r : rockActors) turtle.preventOverlap(r); // столкновение с камнес
+
+        for (SharkV4 s : sharkActors) turtle.preventOverlap(s); // столкновение с акулой
+        // !!!!!!
+        // сделать так чтобы при столкновении с акулой черепаха отлетала назад
 
         for (int i = 0; i < starfishActors.size(); i++) {
             StarfishV4 starfish = starfishActors.get(i);
@@ -76,9 +87,17 @@ public class LevelScreen2V4 extends BaseScreenV4 {
             for (int i = 0; i < rockActors.size(); i++) {
                 rockActors.get(i).clearActions();
                 rockActors.get(i).addAction(Actions.fadeOut(1));            // удалить с экрана
-                rockActors.get(i).addAction(Actions.after(Actions.removeActor()));  // удалить объект черепаха
+                rockActors.get(i).addAction(Actions.after(Actions.removeActor()));  // удалить объект камень
             }
             rockActors.clear(); // удалить полигоны столкновений
+
+            // удалить акул
+            for (int i = 0; i < sharkActors.size(); i++) {
+                sharkActors.get(i).clearActions();
+                sharkActors.get(i).addAction(Actions.fadeOut(1));            // удалить с экрана
+                sharkActors.get(i).addAction(Actions.after(Actions.removeActor()));  // удалить объект акула
+            }
+            sharkActors.clear(); // удалить полигоны столкновений
 
             // удалить черепаху
             turtle.clearActions();
