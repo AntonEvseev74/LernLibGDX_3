@@ -34,8 +34,8 @@ import java.util.ArrayList;
 
 public class StarfishCollectorBetaV3 extends GameBetaV3 {
 
-    private int width = 800;
-    private int height = 600;
+    private int width = 1200;
+    private int height = 900;
 
     private TurtleV3 turtle;
     private boolean win;
@@ -45,8 +45,9 @@ public class StarfishCollectorBetaV3 extends GameBetaV3 {
 
     public void initialize() {
         BaseActorV3 ocean = new BaseActorV3(0, 0, mainStage);
-        ocean.loadTexture("water.jpg");
+        ocean.loadTexture("water-border.jpg");
         ocean.setSize(width, height);
+        BaseActorV3.setWorldBounds(ocean); // установить размер игрового мира по размеру фонового рисунка - океан
 
         // Заполняем список звезд
         starfishActors = new ArrayList<>();
@@ -68,6 +69,7 @@ public class StarfishCollectorBetaV3 extends GameBetaV3 {
     }
 
     public void update(float dt) {
+
         for (RockV3 r : rockActors) turtle.preventOverlap(r);
 
         for (int i = 0; i < starfishActors.size(); i++) {
@@ -90,31 +92,30 @@ public class StarfishCollectorBetaV3 extends GameBetaV3 {
 
         if (starfishActors.size() == 0 && !win) {
 
-            // удаляем камни
+            // удалить камни
             for (int i = 0; i < rockActors.size(); i++) {
                 rockActors.get(i).clearActions();
-                rockActors.get(i).addAction(Actions.fadeOut(1));
-                rockActors.get(i).addAction(Actions.after(Actions.removeActor()));
+                rockActors.get(i).addAction(Actions.fadeOut(1));            // удалить с экрана
+                rockActors.get(i).addAction(Actions.after(Actions.removeActor()));  // удалить объект черепаха
             }
+            rockActors.clear(); // удалить полигоны столкновений
 
-            // удаляем черепаху
+            // удалить черепаху
             turtle.clearActions();
-            turtle.addAction(Actions.fadeOut(1));
-            turtle.addAction(Actions.after(Actions.removeActor()));
+            turtle.addAction(Actions.fadeOut(1));               // удалить с экрана
+           // turtle.addAction(Actions.after(Actions.removeActor()));   // удалить объект черепаха
 
             win = true;
 
             // Выводим сообщение о победе
-            BaseActorV3 youWinMessage = new BaseActorV3(0, 0, mainStage);
+            BaseActorV3 youWinMessage = new BaseActorV3(0, 0, uiStage);
             youWinMessage.loadTexture("you-win.png");
-            youWinMessage.centerAtPosition(width - youWinMessage.getWidth()-50, (height - youWinMessage.getHeight())/2);
+            // Вывести в центр сообщение о победе
+            youWinMessage.centerAtPosition(300, 300);
             youWinMessage.setOpacity(0);
             youWinMessage.addAction(Actions.delay(1));
             youWinMessage.addAction(Actions.after(Actions.fadeIn(1)));
-
-
         }
-
     }
 }
 

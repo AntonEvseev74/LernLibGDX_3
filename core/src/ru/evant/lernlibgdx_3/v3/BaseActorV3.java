@@ -1,5 +1,7 @@
 package ru.evant.lernlibgdx_3.v3;
 
+import com.badlogic.gdx.graphics.Camera;
+import com.badlogic.gdx.math.Rectangle;
 import com.badlogic.gdx.scenes.scene2d.Actor;
 import com.badlogic.gdx.scenes.scene2d.Stage;
 
@@ -18,8 +20,11 @@ import com.badlogic.gdx.math.MathUtils;
 import com.badlogic.gdx.math.Polygon;
 import com.badlogic.gdx.math.Intersector;
 import com.badlogic.gdx.math.Intersector.MinimumTranslationVector;
+import com.badlogic.gdx.utils.viewport.Viewport;
 
 public class BaseActorV3 extends Actor {
+
+    private static Rectangle worldBounds;
 
     private Animation<TextureRegion> animation; // анимация
     private float elapsedTime; // время которое прошло, используется для отслеживания продолжительности воспроизведения анимации
@@ -72,6 +77,46 @@ public class BaseActorV3 extends Actor {
                     getWidth(), getHeight(), getScaleX(), getScaleY(), getRotation());
         }
     }
+
+    /*
+    следующие 2 метода,
+    позволяют сохранять размер игрового мира либо непосредственно из числовых значений,
+    либо на основе актера
+    (например, актера, отображающего фоновое изображение)
+    */
+    public static void setWorldBounds(float width, float height) {
+        worldBounds = new Rectangle(0, 0, width, height);
+    }
+
+    public static void setWorldBounds(BaseActorV3 ba) {
+        setWorldBounds(ba.getWidth(), ba.getHeight());
+    }
+
+    public void boundToWorld() {
+        // проверьте левый край
+        if (getX() < 0) setX(0);
+        // проверьте правый край
+        if (getX() + getWidth() > worldBounds.width) setX(worldBounds.width - getWidth());
+        // проверьте нижний край
+        if (getY() < 0) setY(0);
+        // проверьте вехний край
+        if (getY() + getHeight() > worldBounds.height) setY(worldBounds.height - getHeight());
+    }
+
+    // перемещение камеры за актером
+    public void alignCamera() {
+        Camera cam = this.getStage().getCamera();
+        Viewport v = this.getStage().getViewport();
+
+        // центр камеры на актере
+        cam.position.set( this.getX() + this.getOriginX(), this.getY() + this.getOriginY(), 0 );
+
+        // привязка камеры к экрану
+        cam.position.x = MathUtils.clamp(cam.position.x, cam.viewportWidth/2, worldBounds.width - cam.viewportWidth/2);
+        cam.position.y = MathUtils.clamp(cam.position.y, cam.viewportHeight/2, worldBounds.height - cam.viewportHeight/2); cam.update();
+    }
+
+
 
     // Прозрачность объекта
     public void setOpacity(float opacity) {

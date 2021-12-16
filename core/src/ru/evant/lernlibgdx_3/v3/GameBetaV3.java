@@ -8,10 +8,12 @@ import com.badlogic.gdx.scenes.scene2d.Stage;
 public abstract class GameBetaV3 extends Game {
 
     protected Stage mainStage;
+    protected Stage uiStage;
 
     @Override
     public void create() {
         mainStage = new Stage();
+        uiStage = new Stage();
         initialize();
     }
     public abstract void initialize();
@@ -31,6 +33,9 @@ public abstract class GameBetaV3 extends Game {
 
         // нарисовать графику
         mainStage.draw();
+
+        uiStage.act(dt);
+        uiStage.draw();
     }
 
     public abstract void update(float dt);

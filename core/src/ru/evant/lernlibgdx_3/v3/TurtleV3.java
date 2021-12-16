@@ -52,5 +52,8 @@ public class TurtleV3 extends BaseActorV3 {
         setAnimationPaused( !isMoving() );
 
         if ( getSpeed() > 0 ) setRotation( getMotionAngle() );
+
+        boundToWorld(); // Чтобы черепаха оставалась в пределах мировых границ
+        alignCamera(); // центрировать камеру на актера
     }
 }
